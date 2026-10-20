@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Data.SqlClient;
 
 namespace SQLi_1
@@ -13,44 +9,51 @@ namespace SQLi_1
         {
             try
             {
+                if (args.Length < 2)
+                {
+                    Console.WriteLine("Usage: program <username> <password>");
+                    return;
+                }
+
                 var user = args[0];
                 var pwd = Encrypt(args[1]);
                 Login(user, pwd);
             }
-            catch  
+            catch
             {
-
                 Console.WriteLine("An error has occurred !!");
             }
-            
         }
 
-        private static  string Encrypt(string plain)
+        private static string Encrypt(string plain)
         {
             return plain;
         }
 
-        private static void Login(string username,string password)
+        private static void Login(string username, string password)
         {
             try
             {
                 using (var conn = new SqlConnection("conn..."))
                 {
-                    var sql = "SELECT * FROM Users WHERE username = '" + username + "' AND pwd = '" + password + "'";
-                    using (var cmd = new SqlCommand(sql))
+                    conn.Open();
+
+                    const string sql =
+                        "SELECT * FROM Users WHERE username = @username AND pwd = @password";
+
+                    using (var cmd = new SqlCommand(sql, conn))
                     {
-                        cmd.Connection = conn;
+                        cmd.Parameters.Add("@username", System.Data.SqlDbType.NVarChar, 100).Value = username;
+                        cmd.Parameters.Add("@password", System.Data.SqlDbType.NVarChar, 256).Value = password;
+
                         cmd.ExecuteScalar();
                     }
-
                 }
             }
-            catch  
+            catch
             {
-
                 Console.WriteLine("An error has occurred !!");
             }
-           
         }
     }
 }
